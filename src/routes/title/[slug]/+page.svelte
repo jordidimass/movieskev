@@ -15,6 +15,7 @@
   let year = "";
   let sortRating = "desc";
   let panelOpen = false;
+  let castRowEl;
 
   function buildSearchUrl() {
     const params = new URLSearchParams();
@@ -24,6 +25,11 @@
     if (year) params.set("year", year);
     if (sortRating) params.set("sortRating", sortRating);
     return `/?${params.toString()}`;
+  }
+
+  function scrollRow(element, direction) {
+    if (!element) return;
+    element.scrollBy({ left: direction * 480, behavior: "smooth" });
   }
 </script>
 
@@ -84,15 +90,24 @@
     <p class="text-xs uppercase tracking-[0.3em] text-zinc-500">Cast</p>
     <h2 class="mt-1 text-3xl font-semibold">Lead talent</h2>
     {#if data.cast.length}
-      <div class="mt-6 grid grid-flow-col gap-6 overflow-auto pb-2">
-        {#each data.cast as member}
-          <article class="w-[200px] text-center">
-            <a href={`/actor/${slugifyTitle(member.name)}?id=${member.id}`}>
-              <img class="h-[300px] w-full rounded-2xl object-cover" src={member.profile_path ? `https://image.tmdb.org/t/p/w400${member.profile_path}` : "/img/guest.jpg"} alt={`Portrait of ${member.name}`} />
-            </a>
-            <p class="mt-3 text-sm">{member.name}</p>
-          </article>
-        {/each}
+      <div class="relative mt-6">
+        <button type="button" class="absolute left-2 top-[45%] z-10 grid h-10 w-10 place-items-center rounded-full border border-orange-300/40 bg-black/70 text-orange-300 backdrop-blur transition hover:scale-105 hover:border-orange-300 hover:text-orange-200" on:click={() => scrollRow(castRowEl, -1)} aria-label="Scroll cast left">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+        </button>
+        <button type="button" class="absolute right-2 top-[45%] z-10 grid h-10 w-10 place-items-center rounded-full border border-orange-300/40 bg-black/70 text-orange-300 backdrop-blur transition hover:scale-105 hover:border-orange-300 hover:text-orange-200" on:click={() => scrollRow(castRowEl, 1)} aria-label="Scroll cast right">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+        </button>
+
+        <div class="orange-scroll grid grid-flow-col gap-6 overflow-x-auto pb-3" bind:this={castRowEl}>
+          {#each data.cast as member}
+            <article class="w-[200px] text-center">
+              <a href={`/actor/${slugifyTitle(member.name)}?id=${member.id}`}>
+                <img class="h-[300px] w-full rounded-2xl object-cover" src={member.profile_path ? `https://image.tmdb.org/t/p/w400${member.profile_path}` : "/img/guest.jpg"} alt={`Portrait of ${member.name}`} />
+              </a>
+              <p class="mt-3 text-sm">{member.name}</p>
+            </article>
+          {/each}
+        </div>
       </div>
     {:else}
       <div class="mt-6 rounded-xl border border-dashed border-white/20 p-6 text-zinc-400">Cast information is not available.</div>
