@@ -5,5 +5,6 @@ export function load({ url }) {
     initialRegion: url.searchParams.get("region") || "",
     initialYear: url.searchParams.get("year") || "",
     initialSortRating: url.searchParams.get("sortRating") === "asc" ? "asc" : "desc",
+    initialGenre: url.searchParams.get("genre") || "",
   };
 }

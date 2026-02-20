@@ -6,6 +6,7 @@ export async function GET({ url }) {
   const language = (url.searchParams.get("language") || "en-US").trim() || "en-US";
   const region = (url.searchParams.get("region") || "").trim();
   const year = (url.searchParams.get("year") || "").trim();
+  const genre = (url.searchParams.get("genre") || "").trim();
   const sortRating = url.searchParams.get("sortRating") === "asc" ? "asc" : "desc";
 
   if (!find) {
@@ -20,7 +21,11 @@ export async function GET({ url }) {
       primary_release_year: year,
     });
 
-    const sortedResults = [...(data.results || [])].sort((a, b) => {
+    const genreFiltered = genre
+      ? (data.results || []).filter((movie) => Array.isArray(movie.genre_ids) && movie.genre_ids.includes(Number(genre)))
+      : (data.results || []);
+
+    const sortedResults = [...genreFiltered].sort((a, b) => {
       const diff = (Number(b.vote_average) || 0) - (Number(a.vote_average) || 0);
       return sortRating === "asc" ? -diff : diff;
     });

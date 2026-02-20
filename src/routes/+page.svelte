@@ -14,12 +14,30 @@
   let region = data.initialRegion;
   let year = data.initialYear;
   let sortRating = data.initialSortRating;
+  let genre = data.initialGenre;
 
   let loading = true;
   let movies = [];
   let panelOpen = false;
   let searchTimer;
   let initialized = false;
+
+  function buildFilterParams() {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("find", query.trim());
+    if (language) params.set("language", language);
+    if (region) params.set("region", region);
+    if (year) params.set("year", year);
+    if (sortRating) params.set("sortRating", sortRating);
+    if (genre) params.set("genre", genre);
+    return params;
+  }
+
+  function syncUrlState() {
+    const params = buildFilterParams();
+    const target = params.toString() ? `/?${params.toString()}` : "/";
+    window.history.replaceState(window.history.state, "", target);
+  }
 
   async function loadPopular() {
     loading = true;
@@ -30,6 +48,7 @@
 
     if (region) params.set("region", region);
     if (year) params.set("year", year);
+    if (genre) params.set("genre", genre);
 
     const response = await fetch(`/api/popular?${params.toString()}`);
     const body = await response.json();
@@ -53,6 +72,7 @@
 
     if (region) params.set("region", region);
     if (year) params.set("year", year);
+    if (genre) params.set("genre", genre);
 
     const response = await fetch(`/api/search?${params.toString()}`);
     const body = await response.json();
@@ -64,12 +84,14 @@
     if (!initialized) return;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
+      syncUrlState();
       runSearch();
     }, 220);
   }
 
   function submitSearch(event) {
     event.preventDefault();
+    syncUrlState();
     runSearch();
     panelOpen = false;
   }
@@ -84,6 +106,12 @@
   $: region, queueSearch();
   $: year, queueSearch();
   $: sortRating, queueSearch();
+  $: genre, queueSearch();
+
+  function activeFiltersQuery() {
+    const params = buildFilterParams();
+    return params.toString();
+  }
 </script>
 
 <div class="fixed inset-0 z-0 opacity-25 mix-blend-soft-light" style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='1' height='1' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E')"></div>
@@ -146,6 +174,23 @@
                 <option value="asc">Lowest first</option>
               </Select>
             </label>
+            <label class="min-w-[220px] space-y-1 text-sm">
+              <span class="text-xs uppercase tracking-[0.2em] text-zinc-400">Genre</span>
+              <Select bind:value={genre}>
+                <option value="">All genres</option>
+                <option value="28">Action</option>
+                <option value="12">Adventure</option>
+                <option value="16">Animation</option>
+                <option value="35">Comedy</option>
+                <option value="80">Crime</option>
+                <option value="18">Drama</option>
+                <option value="14">Fantasy</option>
+                <option value="27">Horror</option>
+                <option value="10749">Romance</option>
+                <option value="878">Science Fiction</option>
+                <option value="53">Thriller</option>
+              </Select>
+            </label>
           </div>
         </div>
       {/if}
@@ -158,7 +203,7 @@
   {:else if movies.length}
     <div class="movie-grid">
       {#each movies as movie}
-        <a class="poster-card" href={`/title/${slugifyTitle(movie.title || movie.original_title)}?id=${movie.id}`}>
+        <a class="poster-card" href={`/title/${slugifyTitle(movie.title || movie.original_title)}?id=${movie.id}${activeFiltersQuery() ? `&${activeFiltersQuery()}` : ""}`}>
           <img src={movie.poster_path ? `https://image.tmdb.org/t/p/w400${movie.poster_path}` : "/img/guest.jpg"} alt={`Poster for ${movie.title || movie.original_title}`} />
         </a>
       {/each}
