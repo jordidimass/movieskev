@@ -89,6 +89,16 @@
     initialized = true;
   });
 
+  $: movieTitle = data.movie.title || data.movie.original_title || "Untitled";
+  $: releaseDateLabel = formatReleaseDate(data.movie.release_date);
+
+  function formatReleaseDate(rawDate) {
+    if (!rawDate) return "";
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime())) return rawDate;
+    return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(date);
+  }
+
   $: query, queueSearch();
   $: language, queueSearch();
   $: region, queueSearch();
@@ -135,8 +145,18 @@
     </Button>
     <div class="aspect-[2/3] min-h-[420px] rounded-2xl bg-cover bg-center" style={`background-image:url(https://image.tmdb.org/t/p/original${data.movie.poster_path})`}></div>
     <div class="flex flex-col justify-center gap-4">
-      <p class="text-xs uppercase tracking-[0.3em] text-zinc-500">Feature film</p>
-      <h1 class="text-4xl font-semibold sm:text-5xl">{data.movie.original_title}</h1>
+      {#if data.movieLogoUrl}
+        <img
+          class="max-h-28 w-auto max-w-full object-contain [filter:drop-shadow(0_10px_24px_rgba(0,0,0,0.55))] sm:max-h-32"
+          src={data.movieLogoUrl}
+          alt={`${movieTitle} logo`}
+          loading="eager"
+          decoding="async"
+        />
+        <h1 class="sr-only">{movieTitle}</h1>
+      {:else}
+        <h1 class="text-4xl font-semibold sm:text-5xl">{movieTitle}</h1>
+      {/if}
       <div class="flex flex-wrap items-center gap-5 text-sm text-zinc-300">
         {#if data.movie.vote_average}
           <div class="flex items-center gap-3">
@@ -144,9 +164,17 @@
             <span class="text-xs uppercase tracking-[0.22em] text-zinc-400">TMDB score</span>
           </div>
         {/if}
-        {#if data.movie.release_date}<span>Released {data.movie.release_date}</span>{/if}
+        {#if releaseDateLabel}<span>Released {releaseDateLabel}</span>{/if}
         {#if data.movie.runtime}<span>{data.movie.runtime} min</span>{/if}
       </div>
+      {#if data.director}
+        <a
+          href={`/director/${slugifyTitle(data.director.name)}?id=${data.director.id}&language=${encodeURIComponent(language)}&region=${encodeURIComponent(region)}&year=${encodeURIComponent(year)}&sortRating=${encodeURIComponent(sortRating)}&genre=${encodeURIComponent(genre)}`}
+          class="w-fit text-sm text-orange-200 transition hover:text-orange-100"
+        >
+          Directed by {data.director.name}
+        </a>
+      {/if}
       {#if data.movie.overview}<p class="text-zinc-300">{data.movie.overview}</p>{/if}
       <div class="flex flex-wrap gap-3">
         <a
