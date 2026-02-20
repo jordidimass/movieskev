@@ -1,0 +1,43 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"src": "/_app/immutable/.+",
+			"headers": {
+				"cache-control": "public, immutable, max-age=31536000"
+			}
+		},
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/?(?:/__data.json)?$",
+			"dest": "/"
+		},
+		{
+			"src": "^/actor/([^/]+?)/?(?:/__data.json)?$",
+			"dest": "/actor/[id]"
+		},
+		{
+			"src": "^/api/popular/?(?:/__data.json)?$",
+			"dest": "/api/popular"
+		},
+		{
+			"src": "^/api/search/?(?:/__data.json)?$",
+			"dest": "/api/search"
+		},
+		{
+			"src": "^/title/([^/]+?)/?(?:/__data.json)?$",
+			"dest": "/title/[slug]"
+		},
+		{
+			"src": "^/([^/]+?)/?(?:/__data.json)?$",
+			"dest": "/[id]"
+		},
+		{
+			"src": "/.*",
+			"dest": "/![-]/catchall"
+		}
+	],
+	"overrides": {}
+}

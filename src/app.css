@@ -1,0 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.1;
+    --input: 0 0% 100% / 0.08;
+    --primary: 320 98% 44%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 0 0% 100% / 0.08;
+    --muted-foreground: 0 0% 64%;
+    --accent: 305 97% 30%;
+    --accent-foreground: 0 0% 100%;
+    --radius: 0.9rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    font-family: "Poppins", sans-serif;
+    @apply min-h-screen bg-background text-foreground antialiased;
+    background-image: radial-gradient(circle at top, #1b1b1b 0%, #050505 55%);
+  }
+}
+
+@layer components {
+  .shell {
+    @apply relative z-10 mx-auto w-[min(1400px,98vw)];
+  }
+
+  .glass {
+    @apply rounded-3xl border border-white/10 bg-black/65 shadow-2xl backdrop-blur-xl;
+  }
+
+  .movie-grid {
+    @apply mt-[25px] grid grid-cols-[repeat(auto-fit,220px)] justify-center gap-8;
+  }
+
+  .poster-card {
+    @apply overflow-hidden rounded-xl transition hover:scale-[1.02];
+  }
+
+  .poster-card img {
+    @apply h-[330px] w-[220px] object-cover;
+  }
+}
