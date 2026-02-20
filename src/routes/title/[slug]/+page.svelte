@@ -4,6 +4,7 @@
   import Button from "$ui/button.svelte";
   import Select from "$ui/select.svelte";
   import SlidersHorizontal from "$ui/sliders-horizontal.svelte";
+  import Eye from "$ui/eye.svelte";
   import CircularProgress from "$ui/circular-progress.svelte";
   import { slugifyTitle } from "$lib/utils/slug";
 
@@ -30,6 +31,13 @@
   function scrollRow(element, direction) {
     if (!element) return;
     element.scrollBy({ left: direction * 480, behavior: "smooth" });
+  }
+
+  function letterboxdUrl(movie) {
+    const title = movie?.title || movie?.original_title || "";
+    const year = (movie?.release_date || "").slice(0, 4);
+    const query = `${title} ${year}`.trim();
+    return `https://letterboxd.com/search/${encodeURIComponent(query)}/`;
   }
 </script>
 
@@ -81,6 +89,15 @@
         {#if data.movie.runtime}<span>{data.movie.runtime} min</span>{/if}
       </div>
       {#if data.movie.overview}<p class="text-zinc-300">{data.movie.overview}</p>{/if}
+      <a
+        href={letterboxdUrl(data.movie)}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="group inline-flex w-fit items-center gap-2 rounded-xl border border-orange-300/30 bg-black/35 px-3 py-2 text-xs uppercase tracking-[0.18em] text-orange-200 transition hover:border-orange-300 hover:bg-black/55"
+      >
+        <Eye size={16} className="text-orange-300 transition group-hover:text-orange-200" active={false} />
+        View on Letterboxd
+      </a>
     </div>
   </section>
 </header>
