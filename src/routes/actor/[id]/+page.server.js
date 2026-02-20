@@ -12,23 +12,27 @@ export async function load({ params, url }) {
   } else if (Number.isFinite(idFromPath) && idFromPath > 0) {
     personId = idFromPath;
   } else {
-    const query = unslugifyTitle(params.id);
-    if (!query) {
+    try {
+      const query = unslugifyTitle(params.id);
+      if (!query) {
+        throw error(404, "Actor not found");
+      }
+
+      const people = await tmdbFetch("/search/person", {
+        query,
+        language: "en-US",
+        include_adult: false,
+      });
+
+      const firstMatch = people.results?.[0];
+      if (!firstMatch?.id) {
+        throw error(404, "Actor not found");
+      }
+
+      personId = firstMatch.id;
+    } catch {
       throw error(404, "Actor not found");
     }
-
-    const people = await tmdbFetch("/search/person", {
-      query,
-      language: "en-US",
-      include_adult: false,
-    });
-
-    const firstMatch = people.results?.[0];
-    if (!firstMatch?.id) {
-      throw error(404, "Actor not found");
-    }
-
-    personId = firstMatch.id;
   }
 
   try {

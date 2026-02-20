@@ -7,24 +7,28 @@ export async function load({ params, url }) {
   let movieId = Number.isFinite(idFromQuery) && idFromQuery > 0 ? idFromQuery : null;
 
   if (!movieId) {
-    const query = unslugifyTitle(params.slug);
+    try {
+      const query = unslugifyTitle(params.slug);
 
-    if (!query) {
+      if (!query) {
+        throw error(404, "Movie not found");
+      }
+
+      const search = await tmdbFetch("/search/movie", {
+        query,
+        language: "en-US",
+        include_adult: false,
+      });
+
+      const firstMatch = search.results?.[0];
+      if (!firstMatch?.id) {
+        throw error(404, "Movie not found");
+      }
+
+      movieId = firstMatch.id;
+    } catch {
       throw error(404, "Movie not found");
     }
-
-    const search = await tmdbFetch("/search/movie", {
-      query,
-      language: "en-US",
-      include_adult: false,
-    });
-
-    const firstMatch = search.results?.[0];
-    if (!firstMatch?.id) {
-      throw error(404, "Movie not found");
-    }
-
-    movieId = firstMatch.id;
   }
 
   try {
