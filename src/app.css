@@ -52,4 +52,24 @@
   .poster-card img {
     @apply h-[330px] w-[220px] object-cover;
   }
+
+  .orange-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #f97316 rgba(255, 255, 255, 0.08);
+  }
+
+  .orange-scroll::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  .orange-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+  }
+
+  .orange-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #fb923c, #f97316);
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+  }
 }
