@@ -148,7 +148,7 @@
 
 <header class="shell relative z-10 py-8 sm:py-10">
   <section class="glass mt-6 grid gap-8 p-6 lg:grid-cols-[minmax(280px,420px)_1fr] lg:p-8">
-    <div class="aspect-[2/3] min-h-[420px] rounded-2xl bg-cover bg-center" style={`background-image:url(https://image.tmdb.org/t/p/original${data.person.profile_path})`}></div>
+    <div class="aspect-[2/3] min-h-[420px] rounded-2xl bg-cover bg-center" style={`background-image:url(${data.person.profile_path ? `https://image.tmdb.org/t/p/original${data.person.profile_path}` : "/img/guest.jpg"})`}></div>
     <div class="flex flex-col justify-center gap-4">
       <p class="text-xs uppercase tracking-[0.3em] text-zinc-500">Talent spotlight</p>
       <h1 class="text-4xl font-semibold sm:text-5xl">{data.person.name}</h1>

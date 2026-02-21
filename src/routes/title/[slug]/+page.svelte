@@ -143,11 +143,11 @@
     <Button type="button" variant="outline" className="absolute right-4 top-4 z-10 h-10 w-10 rounded-full p-0" on:click={goBack} aria-label="Go back">
       <ArrowLeft size={18} className="text-orange-200" />
     </Button>
-    <div class="aspect-[2/3] min-h-[420px] rounded-2xl bg-cover bg-center" style={`background-image:url(https://image.tmdb.org/t/p/original${data.movie.poster_path})`}></div>
+    <div class="aspect-[2/3] min-h-[420px] rounded-2xl bg-cover bg-center" style={`background-image:url(https://image.tmdb.org/t/p/original${data.movie.poster_path || ""})`}></div>
     <div class="flex flex-col justify-center gap-4">
       {#if data.movieLogoUrl}
         <img
-          class="max-h-28 w-auto max-w-full object-contain [filter:drop-shadow(0_10px_24px_rgba(0,0,0,0.55))] sm:max-h-32"
+          class="max-h-20 w-auto max-w-full object-contain [filter:drop-shadow(0_10px_24px_rgba(0,0,0,0.55))] sm:max-h-24"
           src={data.movieLogoUrl}
           alt={`${movieTitle} logo`}
           loading="eager"

@@ -127,7 +127,7 @@
     <Button type="button" variant="outline" className="absolute right-4 top-4 z-10 h-10 w-10 rounded-full p-0" on:click={goBack} aria-label="Go back">
       <ArrowLeft size={18} className="text-orange-200" />
     </Button>
-    <div class="aspect-[2/3] min-h-[420px] rounded-2xl bg-cover bg-center" style={`background-image:url(https://image.tmdb.org/t/p/original${data.movie.poster_path})`}></div>
+    <div class="aspect-[2/3] min-h-[420px] rounded-2xl bg-cover bg-center" style={`background-image:url(https://image.tmdb.org/t/p/original${data.movie.poster_path || ""})`}></div>
     <div class="flex flex-col justify-center gap-4">
       <p class="text-xs uppercase tracking-[0.3em] text-zinc-500">Feature film</p>
       <h1 class="text-4xl font-semibold sm:text-5xl">{data.movie.original_title}</h1>
