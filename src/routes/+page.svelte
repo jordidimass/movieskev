@@ -15,12 +15,16 @@
   let year = data.initialYear;
   let sortRating = data.initialSortRating;
   let genre = data.initialGenre;
+  let page = data.initialPage;
 
   let loading = true;
   let movies = [];
+  let totalPages = 0;
+  let totalResults = 0;
   let panelOpen = false;
   let searchTimer;
   let initialized = false;
+  let skipNextQueued = false;
 
   function buildFilterParams() {
     const params = new URLSearchParams();
@@ -30,6 +34,7 @@
     if (year) params.set("year", year);
     if (sortRating) params.set("sortRating", sortRating);
     if (genre) params.set("genre", genre);
+    if (page && page > 1) params.set("page", String(page));
     return params;
   }
 
@@ -44,6 +49,7 @@
     const params = new URLSearchParams({
       language,
       sortRating,
+      page: String(page || 1),
     });
 
     if (region) params.set("region", region);
@@ -53,6 +59,13 @@
     const response = await fetch(`/api/popular?${params.toString()}`);
     const body = await response.json();
     movies = body.results || [];
+    const serverPage = Number(body.page) || page || 1;
+    if (serverPage !== page) {
+      skipNextQueued = true;
+      page = serverPage;
+    }
+    totalPages = Number(body.total_pages) || 0;
+    totalResults = Number(body.total_results) || 0;
     loading = false;
   }
 
@@ -68,6 +81,7 @@
       find: trimmed,
       language,
       sortRating,
+      page: String(page || 1),
     });
 
     if (region) params.set("region", region);
@@ -77,12 +91,31 @@
     const response = await fetch(`/api/search?${params.toString()}`);
     const body = await response.json();
     movies = body.results || [];
+    const serverPage = Number(body.page) || page || 1;
+    if (serverPage !== page) {
+      skipNextQueued = true;
+      page = serverPage;
+    }
+    totalPages = Number(body.total_pages) || 0;
+    totalResults = Number(body.total_results) || 0;
     loading = false;
   }
 
-  function queueSearch() {
+  function queueSearch({ resetPage = false } = {}) {
     if (!initialized) return;
+
+    if (skipNextQueued) {
+      skipNextQueued = false;
+      return;
+    }
+
     clearTimeout(searchTimer);
+
+    if (resetPage && page !== 1) {
+      page = 1;
+      return;
+    }
+
     searchTimer = setTimeout(() => {
       syncUrlState();
       runSearch();
@@ -91,9 +124,51 @@
 
   function submitSearch(event) {
     event.preventDefault();
+
+    clearTimeout(searchTimer);
+    if (page !== 1) {
+      skipNextQueued = true;
+      page = 1;
+    }
     syncUrlState();
     runSearch();
     panelOpen = false;
+  }
+
+  function gotoPage(nextPage) {
+    const safeNext = Math.max(1, Math.floor(Number(nextPage) || 1));
+    if (safeNext === page) return;
+
+    clearTimeout(searchTimer);
+    skipNextQueued = true;
+    page = safeNext;
+    syncUrlState();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    runSearch();
+  }
+
+  function buildPageItems(current, total) {
+    if (!total || total <= 1) return [];
+    const cur = Math.min(Math.max(1, current), total);
+    const items = [];
+
+    const add = (value) => items.push(value);
+    const addEllipsis = () => {
+      if (items[items.length - 1] !== "…") items.push("…");
+    };
+
+    add(1);
+
+    const start = Math.max(2, cur - 2);
+    const end = Math.min(total - 1, cur + 2);
+
+    if (start > 2) addEllipsis();
+    for (let i = start; i <= end; i += 1) add(i);
+    if (end < total - 1) addEllipsis();
+
+    if (total > 1) add(total);
+
+    return items;
   }
 
   onMount(async () => {
@@ -101,12 +176,15 @@
     await runSearch();
   });
 
-  $: query, queueSearch();
-  $: language, queueSearch();
-  $: region, queueSearch();
-  $: year, queueSearch();
-  $: sortRating, queueSearch();
-  $: genre, queueSearch();
+  $: query, queueSearch({ resetPage: true });
+  $: language, queueSearch({ resetPage: true });
+  $: region, queueSearch({ resetPage: true });
+  $: year, queueSearch({ resetPage: true });
+  $: sortRating, queueSearch({ resetPage: true });
+  $: genre, queueSearch({ resetPage: true });
+  $: page, queueSearch();
+
+  $: pageItems = buildPageItems(page || 1, totalPages || 0);
 
   function activeFiltersQuery() {
     const params = buildFilterParams();
@@ -208,6 +286,55 @@
         </a>
       {/each}
     </div>
+
+    {#if totalPages > 1}
+      <nav class="mt-10 flex flex-col items-center gap-3" aria-label="Pagination">
+        <div class="text-xs uppercase tracking-[0.2em] text-zinc-400">
+          Page {page} of {totalPages}{totalResults ? ` • ${totalResults.toLocaleString()} results` : ""}
+        </div>
+
+        <div class="glass w-full max-w-[900px] overflow-x-auto p-3">
+          <div class="flex items-center justify-center gap-2">
+            <Button
+              variant="ghost"
+              className="h-10 rounded-xl px-4"
+              disabled={page <= 1}
+              on:click={() => gotoPage(page - 1)}
+            >
+              Prev
+            </Button>
+
+            {#each pageItems as item}
+              {#if item === "…"}
+                <span class="px-2 text-zinc-500">...</span>
+              {:else}
+                <Button
+                  variant="ghost"
+                  className={
+                    item === page
+                      ? "h-10 rounded-xl border-white/40 bg-white/10 px-4"
+                      : "h-10 rounded-xl px-4"
+                  }
+                  aria-current={item === page ? "page" : undefined}
+                  on:click={() => gotoPage(item)}
+                >
+                  {item}
+                </Button>
+              {/if}
+            {/each}
+
+            <Button
+              variant="ghost"
+              className="h-10 rounded-xl px-4"
+              disabled={totalPages ? page >= totalPages : false}
+              on:click={() => gotoPage(page + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </nav>
+    {/if}
   {:else}
     <div class="glass p-10 text-center text-zinc-400">No matches found. Try another title or cast member.</div>
   {/if}
